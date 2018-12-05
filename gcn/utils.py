@@ -211,7 +211,7 @@ def get_node_cpn(graph):
     return nodes_per_cpn
 
 
-def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_split):
+def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_split, the_rest=False):
     """
     :param nodes_per_group: in the entire graph, component size: all nodes in components of that size (for largest component, size =0)
     :param test_o_acc_all: original test accuracy for all nodes in the graph (before masked)
@@ -237,29 +237,29 @@ def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_s
     acc_of_nonB = np.mean([test_per_node[node] for node in idx_test if node not in nodes_per_group[0]])
     print('test accuracy for the rest = ', acc_of_nonB)
 
+    if the_rest:
+        print('=========per SIZE===========')
 
-    print('=========per SIZE===========')
-
-    for phase in ['train', 'val', 'test']:
-        idx = data_split['idx_' + phase]
-        print('----{} (TOT = )----'.format(phase, len(idx)))
-        for cpn_size in nodes_per_group:
-            num_in_phase = len([n for n in nodes_per_group[cpn_size] if n in idx])
-            print('there are {} nodes coming from components of size {} ({}% of train set)'.format(num_in_phase, cpn_size, num_in_phase/ len(idx)*100))
-            if phase == 'test':
-                acc_of_cpn_size = np.mean([test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]])
-                print('test accuracy for these nodes = ', acc_of_cpn_size)
-
-    print('==============CPN ===========')
-    for cpn in nodes_per_cpn:
-        print('-----{}-----'.format(cpn))
         for phase in ['train', 'val', 'test']:
             idx = data_split['idx_' + phase]
-            num_in_phase = len([n for n in nodes_per_cpn[cpn] if n in idx])
-            print('{} : {} ({}%)'.format(phase, num_in_phase, num_in_phase/ len(nodes_per_cpn[cpn])))
+            print('----{} (TOT = )----'.format(phase, len(idx)))
+            for cpn_size in nodes_per_group:
+                num_in_phase = len([n for n in nodes_per_group[cpn_size] if n in idx])
+                print('there are {} nodes coming from components of size {} ({}% of train set)'.format(num_in_phase, cpn_size, num_in_phase/ len(idx)*100))
+                if phase == 'test':
+                    acc_of_cpn_size = np.mean([test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]])
+                    print('test accuracy for these nodes = ', acc_of_cpn_size)
 
-        acc_of_cpn = np.mean([test_per_node[node] for node in idx_test if node in nodes_per_cpn[cpn]])
-        print('test accuracy = ', acc_of_cpn)
+        print('==============CPN ===========')
+        for cpn in nodes_per_cpn:
+            print('-----{}-----'.format(cpn))
+            for phase in ['train', 'val', 'test']:
+                idx = data_split['idx_' + phase]
+                num_in_phase = len([n for n in nodes_per_cpn[cpn] if n in idx])
+                print('{} : {} ({}%)'.format(phase, num_in_phase, num_in_phase/ len(nodes_per_cpn[cpn])))
+
+            acc_of_cpn = np.mean([test_per_node[node] for node in idx_test if node in nodes_per_cpn[cpn]])
+            print('test accuracy = ', acc_of_cpn)
 
     # acc_per_group = {}
     # for cpn_size in nodes_per_group:
