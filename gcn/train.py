@@ -73,7 +73,7 @@ def main(model_config, sess, seed, verbose=False):
     }
 
     # create model
-    model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], logging=True)
+    model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], name=None, logging=True)
     # model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize
