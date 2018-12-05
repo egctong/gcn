@@ -79,7 +79,7 @@ def main(model_config, sess, seed, verbose=False):
         signature = inspect.signature(GCN.__init__)
         print(signature.args)
         print(signature.default)
-        
+
     # model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize

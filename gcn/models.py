@@ -132,9 +132,13 @@ class MLP(Model):
         return tf.nn.softmax(self.outputs)
 
 
-class GCN(Model):
-    def __init__(self, model_config, placeholders, input_dim, name, logging):
-        super(GCN, self).__init__(model_config, placeholders, input_dim, name, logging)
+class GCN(object):
+
+    def __init__(self, model_config, placeholders, input_dim, logging):
+
+        self.name = 'GCN'
+        self.input_dim = input_dim
+        self.logging= logging
 
         self.model_config = model_config
 
@@ -146,6 +150,28 @@ class GCN(Model):
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.model_config['learning_rate'])
 
         self.build()
+
+    def build(self):
+        """ Wrapper for _build() """
+        with tf.variable_scope(self.name):
+            self._build()
+
+        # Build sequential layer model
+        self.activations.append(self.inputs)
+        for layer in self.layers:
+            hidden = layer(self.activations[-1])
+            self.activations.append(hidden)
+        self.outputs = self.activations[-1]
+
+        # Store model variables for easy access
+        variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
+        self.vars = {var.name: var for var in variables}
+
+        # Build metrics
+        self._loss()
+        self._accuracy()
+
+        self.opt_op = self.optimizer.minimize(self.loss)
 
     def _loss(self):
         # Weight decay loss
