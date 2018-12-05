@@ -68,6 +68,7 @@ def load_data(dataset_str):
         ty = ty_extended
 
     # node groups:
+    node_per_cpn = get_node_cpn(graph)
     nodes_per_group = get_node_groups(graph)
 
     features = sp.vstack((allx, tx)).tolil()
@@ -92,7 +93,7 @@ def load_data(dataset_str):
     y_val[val_mask, :] = labels[val_mask, :]
     y_test[test_mask, :] = labels[test_mask, :]
 
-    return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_train, idx_val, idx_test, nodes_per_group
+    return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_train, idx_val, idx_test, nodes_per_group, node_per_cpn
 
 
 def sparse_to_tuple(sparse_mx):
@@ -178,10 +179,6 @@ def get_node_groups(graph):
     gr = nx.from_dict_of_lists(graph)
     acs = sorted(nx.connected_components(gr), key=len, reverse=True)
     nodes_in_biggest = acs[0]
-    nodes_in_disc = [i for c in acs for i in c if c != acs[0]]
-    isolated_nodes = [i for c in acs for i in c if len(c) == 1]
-    nodes_in_disc_not_isolated = [i for i in nodes_in_disc if i not in isolated_nodes]
-    assert len(gr) == len(nodes_in_biggest) + len(nodes_in_disc_not_isolated) + len(isolated_nodes)
 
     nodes_per_group = {}
     for c in acs[1:]:
@@ -193,7 +190,28 @@ def get_node_groups(graph):
     return nodes_per_group
 
 
-def performance_per_group(nodes_per_group, test_o_acc_all, data_split):
+def get_node_cpn(graph):
+    gr = nx.from_dict_of_lists(graph)
+
+    acs = sorted(nx.connected_components(gr), key=len, reverse=True)
+
+    nodes_per_cpn = {}
+    tmp = {len(c): 0 for c in acs}
+
+    for c in acs[1:]:
+        c_size = len(c)
+        tmp[c_size] += 1
+        c_label = tmp[c_size] - 1
+        c_name = '{}_{}'.format(c_size, c_label)
+
+        nodes_per_cpn[c_name] = c
+
+    nodes_per_cpn['0_0'] = acs[0]
+
+    return nodes_per_cpn
+
+
+def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_split):
     """
     :param nodes_per_group: in the entire graph, component size: all nodes in components of that size (for largest component, size =0)
     :param test_o_acc_all: original test accuracy for all nodes in the graph (before masked)
@@ -211,6 +229,8 @@ def performance_per_group(nodes_per_group, test_o_acc_all, data_split):
 
     # for each component size, what is the mean accuracy of the tested nodes
 
+    cpn_sizes = list(set([cname[0] for cname in nodes_per_cpn]))
+
     acc_per_group = {}
     for cpn_size in nodes_per_group:
         acc_per_group[cpn_size] = [test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]]
@@ -221,11 +241,17 @@ def performance_per_group(nodes_per_group, test_o_acc_all, data_split):
                                                                                         acc_per_group[cpn_size]))
     for phase in ['train', 'val', 'test']:
         idx = data_split['idx_' + phase]
-        print('----{}----'.format(phase))
+        print('----{}----')
         for cpn_size in nodes_per_group:
             num_in_phase = len([n for n in nodes_per_group[cpn_size] if n in idx])
             print('size {} : {} ({}%)'.format(cpn_size, num_in_phase, num_in_phase/ len(idx))*100)
 
-
+    print('==============CPN ===========')
+    for cpn in nodes_per_cpn:
+        print('-----{}-----'.format(cpn))
+        for phase in ['train', 'val', 'test']:
+            idx = data_split['idx_' + phase]
+            num_in_phase = len([n for n in nodes_per_cpn[cpn] if n in idx])
+            print('{} : {} ({}%)'.format(phase, num_in_phase, num_in_phase/ len(nodes_per_cpn[cpn])))
 
     return acc_per_group

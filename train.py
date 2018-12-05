@@ -52,7 +52,7 @@ def main(model_config, sess, seed, verbose=False):
     print(model_config)
 
     # load data
-    adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_train, idx_val, idx_test, nodes_per_group = load_data(model_config['dataset'])
+    adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_train, idx_val, idx_test, nodes_per_group, node_per_cpn = load_data(model_config['dataset'])
 
     data_split = {
         'adj': adj,
@@ -66,7 +66,8 @@ def main(model_config, sess, seed, verbose=False):
         'idx_train': idx_train,
         'idx_val': idx_val,
         'idx_test': idx_test,
-        'nodes_per_group': nodes_per_group
+        'nodes_per_group': nodes_per_group,
+        'node_per_cpn': node_per_cpn
     }
 
     # Some preprocessing  # features = (coords, values, shape)
@@ -140,7 +141,7 @@ def main(model_config, sess, seed, verbose=False):
 
     print("Total time={}s".format(time.time()-very_beginning))
 
-    acc_per_group = performance_per_group(nodes_per_group, test_o_acc_all, idx_test)
+    acc_per_group = performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, idx_test)
 
     return test_acc, test_acc_all, test_o_acc_all, data_split
 
