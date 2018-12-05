@@ -128,6 +128,9 @@ def main(model_config, sess, seed, verbose=False):
     feed_dict_test = construct_feed_dict(features, support, y_test, test_mask, placeholders)
     test_cost, test_acc, test_acc_all, test_o_acc_all = sess.run([model.loss, model.accuracy, model.accuracy_all, model.o_accuracy_all], feed_dict=feed_dict_test)
     test_duration = (time.time() - t_test)
+    print("Test set results:", "cost=", "{:.5f}".format(test_cost),
+          "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+
     print('test_mask: ', test_mask)
     print('test_acc_all', test_acc_all)
     print('test_o_acc_all', test_o_acc_all)
