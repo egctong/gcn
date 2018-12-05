@@ -59,6 +59,9 @@ def main(model_config, sess, seed, verbose=False):
     print(time.time() - begin, 's')
     features = preprocess_features(features)
 
+    #
+    support, num_supports, model_func = get_model(model_config)
+
     # define placeholders
     placeholders = {
         'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
@@ -70,7 +73,6 @@ def main(model_config, sess, seed, verbose=False):
     }
 
     # create model
-    support, num_supports, model_func = get_model(model_config)
     model = model_func(placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize
