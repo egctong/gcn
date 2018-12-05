@@ -141,9 +141,9 @@ def main(model_config, sess, seed, verbose=False):
 
     print("Total time={}s".format(time.time()-very_beginning))
 
-    test_per_node = performance_per_group(nodes_per_group, node_per_cpn, test_o_acc_all, data_split)
+    test_per_node, acc_of_B, acc_of_nonB = performance_per_group(nodes_per_group, node_per_cpn, test_o_acc_all, data_split)
 
-    return test_acc, test_acc_all, test_o_acc_all, data_split, test_per_node
+    return test_acc, test_acc_all, test_o_acc_all, data_split, acc_of_B, acc_of_nonB
 
 
 if __name__ == '__main__':
@@ -155,4 +155,4 @@ if __name__ == '__main__':
     with tf.Graph().as_default():
         tf.set_random_seed(seed)
         with tf.Session() as sess:
-            test_acc, test_acc_all, test_o_acc_all, data_split, test_per_node = main(config, sess, seed)
+            test_acc, test_acc_all, test_o_acc_all, data_split, acc_of_B, acc_of_nonB = main(config, sess, seed)

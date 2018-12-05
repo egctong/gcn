@@ -270,4 +270,4 @@ def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_s
     #                                                                                     len(test_per_node[cpn_size])/len(idx_test)*100,
     #                                                                                     acc_per_group[cpn_size]))
     #
-    return test_per_node
+    return test_per_node, acc_of_B, acc_of_nonB
