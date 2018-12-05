@@ -74,7 +74,7 @@ def main(model_config, sess, seed, verbose=False):
 
     # create model
     try:
-        model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
+        model = model_func(model_config, placeholders, features[2][1], logging=True)
     except:
         model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], logging=True)
 
