@@ -67,6 +67,9 @@ def load_data(dataset_str):
         ty_extended[test_idx_range-min(test_idx_range), :] = ty
         ty = ty_extended
 
+    # node groups:
+    nodes_per_group = get_node_groups(graph)
+
     features = sp.vstack((allx, tx)).tolil()
     features[test_idx_reorder, :] = features[test_idx_range, :]
     adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
@@ -89,7 +92,7 @@ def load_data(dataset_str):
     y_val[val_mask, :] = labels[val_mask, :]
     y_test[test_mask, :] = labels[test_mask, :]
 
-    return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_test
+    return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_test, nodes_per_group
 
 
 def sparse_to_tuple(sparse_mx):
@@ -173,10 +176,34 @@ def chebyshev_polynomials(adj, k):
 
 def get_node_groups(graph):
     gr = nx.from_dict_of_lists(graph)
-    acs = sorted(nx.connected_components(gr), key = len, reverse=True)
+    acs = sorted(nx.connected_components(gr), key=len, reverse=True)
     nodes_in_biggest = acs[0]
-    nodes_in_disc = [i for c in acs for i in c if c!= acs[0]]
+    nodes_in_disc = [i for c in acs for i in c if c != acs[0]]
     isolated_nodes = [i for c in acs for i in c if len(c) == 1]
     nodes_in_disc_not_isolated = [i for i in nodes_in_disc if i not in isolated_nodes]
-    assert len(gr) == len(nodes_in_biggest)+ len(nodes_in_disc_not_isolated) + len(isolated_nodes)
-    return nodes_in_biggest
+    assert len(gr) == len(nodes_in_biggest) + len(nodes_in_disc_not_isolated) + len(isolated_nodes)
+
+    nodes_per_group = {}
+    for c in acs[1:]:
+        if len(c) in nodes_per_group:
+            nodes_per_group[len(c)] = nodes_per_group[len(c)].union(c)
+        else:
+            nodes_per_group[len(c)] = c
+    nodes_per_group[0] = nodes_in_biggest
+    return nodes_per_group
+
+
+def performance_per_group(nodes_per_group, test_o_acc_all, idx_test):
+    test_per_node = {}
+    for node in idx_test:
+        test_per_node[node] = test_o_acc_all[node]
+
+    # in biggest:
+    acc_per_group = {}
+    for cpn_size in nodes_per_group:
+        acc_per_group[cpn_size] = [test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]]
+        acc_per_group[cpn_size] = np.mean(acc_per_group[cpn_size])
+        print('compoennt of size = {}, number of nodes = {} (), accuracy = {}'.format(cpn_size, nodes_per_group[cpn_size],
+                                                                                      nodes_per_group[cpn_size]/len(idx_test),
+                                                                                      acc_per_group[cpn_size]))
+    return acc_per_group
