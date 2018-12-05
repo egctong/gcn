@@ -57,6 +57,8 @@ def load_data(dataset_str):
     if dataset_str == 'citeseer':
         # Fix citeseer dataset (there are some isolated nodes in the graph)
         # Find isolated nodes, add them as zero-vecs into the right position
+        # only fill with data those indexes which are part of the test idx range!
+        # if they aren't, they're just left with zeros.
         test_idx_range_full = range(min(test_idx_reorder), max(test_idx_reorder)+1)
         tx_extended = sp.lil_matrix((len(test_idx_range_full), x.shape[1]))
         tx_extended[test_idx_range-min(test_idx_range), :] = tx
@@ -167,3 +169,14 @@ def chebyshev_polynomials(adj, k):
         t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
 
     return sparse_to_tuple(t_k)
+
+
+def get_node_groups(graph):
+    gr = nx.from_dict_of_lists(graph)
+    acs = sorted(nx.connected_components(gr), key = len, reverse=True)
+    nodes_in_biggest = acs[0]
+    nodes_in_disc = [i for c in acs for i in c if c!= acs[0]]
+    isolated_nodes = [i for c in acs for i in c if len(c) == 1]
+    nodes_in_disc_not_isolated = [i for i in nodes_in_disc if i not in isolated_nodes]
+    assert len(gr) == len(nodes_in_biggest)+ len(nodes_in_disc_not_isolated) + len(isolated_nodes)
+    return nodes_in_biggest

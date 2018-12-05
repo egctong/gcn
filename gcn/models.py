@@ -1,8 +1,8 @@
 from gcn.layers import *
 from gcn.metrics import *
-
-flags = tf.app.flags
-FLAGS = flags.FLAGS
+#
+# flags = tf.app.flags
+# FLAGS = flags.FLAGS
 
 
 class Model(object):
@@ -18,6 +18,8 @@ class Model(object):
         logging = kwargs.get('logging', False)
         self.logging = logging
 
+        self.model_config = None
+
         self.vars = {}
         self.placeholders = {}
 
@@ -31,6 +33,8 @@ class Model(object):
         self.accuracy = 0
         self.optimizer = None
         self.opt_op = None
+
+        self.accuracy_all = 0
 
     def _build(self):
         raise NotImplementedError
@@ -83,8 +87,10 @@ class Model(object):
 
 
 class MLP(Model):
-    def __init__(self, placeholders, input_dim, **kwargs):
+    def __init__(self, model_config, placeholders, input_dim, **kwargs):
         super(MLP, self).__init__(**kwargs)
+
+        self.model_config = model_config
 
         self.inputs = placeholders['features']
         self.input_dim = input_dim
@@ -92,14 +98,14 @@ class MLP(Model):
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.model_config['learning_rate'])
 
         self.build()
 
     def _loss(self):
         # Weight decay loss
         for var in self.layers[0].vars.values():
-            self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
+            self.loss += self.model_config['weight_decay'] * tf.nn.l2_loss(var)
 
         # Cross entropy error
         self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
@@ -111,14 +117,14 @@ class MLP(Model):
 
     def _build(self):
         self.layers.append(Dense(input_dim=self.input_dim,
-                                 output_dim=FLAGS.hidden1,
+                                 output_dim=self.model_config['hidden1'],
                                  placeholders=self.placeholders,
                                  act=tf.nn.relu,
                                  dropout=True,
                                  sparse_inputs=True,
                                  logging=self.logging))
 
-        self.layers.append(Dense(input_dim=FLAGS.hidden1,
+        self.layers.append(Dense(input_dim=self.model_config['hidden1'],
                                  output_dim=self.output_dim,
                                  placeholders=self.placeholders,
                                  act=lambda x: x,
@@ -130,8 +136,10 @@ class MLP(Model):
 
 
 class GCN(Model):
-    def __init__(self, placeholders, input_dim, **kwargs):
+    def __init__(self, model_config, placeholders, input_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
+
+        self.model_config = model_config
 
         self.inputs = placeholders['features']
         self.input_dim = input_dim
@@ -139,14 +147,14 @@ class GCN(Model):
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.model_config['learning_rate'])
 
         self.build()
 
     def _loss(self):
         # Weight decay loss
         for var in self.layers[0].vars.values():
-            self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
+            self.loss += self.model_config['weight_decay'] * tf.nn.l2_loss(var)
 
         # Cross entropy error
         self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
@@ -156,17 +164,19 @@ class GCN(Model):
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 
+        self.accuracy_all = accuracy_all(self.outputs, self.placeholders['labels'], self.placeholders['labels_mask'])
+
     def _build(self):
 
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
-                                            output_dim=FLAGS.hidden1,
+                                            output_dim=self.model_config['hidden1'],
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
                                             dropout=True,
                                             sparse_inputs=True,
                                             logging=self.logging))
 
-        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
+        self.layers.append(GraphConvolution(input_dim=self.model_config['hidden1'],
                                             output_dim=self.output_dim,
                                             placeholders=self.placeholders,
                                             act=lambda x: x,
@@ -175,3 +185,4 @@ class GCN(Model):
 
     def predict(self):
         return tf.nn.softmax(self.outputs)
+
