@@ -8,7 +8,7 @@ from gcn.metrics import *
 class Model(object):
     def __init__(self, model_config=None, placeholders=None, input_dim=None, name=None, logging=False):
 
-        if not name:
+        if name is None:
             name = self.__class__.__name__.lower()
         self.name = name
 

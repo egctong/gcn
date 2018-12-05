@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from gcn.utils import *
 from gcn.models import GCN, MLP
-
+import inspect
 
 def get_model(config, adj):
     if config['model'] == 'gcn':
@@ -73,7 +73,13 @@ def main(model_config, sess, seed, verbose=False):
     }
 
     # create model
-    model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], name=None, logging=True)
+    try:
+        model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], name=None, logging=True)
+    except:
+        signature = inspect.signature(GCN.__init__)
+        print(signature.args)
+        print(signature.default)
+        
     # model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize
