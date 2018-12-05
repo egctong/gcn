@@ -6,22 +6,19 @@ from gcn.metrics import *
 
 
 class Model(object):
-    def __init__(self, model_config={}, placeholders={}, **kwargs):
-        allowed_kwargs = {'name', 'logging'}
-        for kwarg in kwargs.keys():
-            assert kwarg in allowed_kwargs, 'Invalid keyword argument: ' + kwarg
-        name = kwargs.get('name')
+    def __init__(self, model_config=None, placeholders=None, input_dim=None, name=None, logging=False):
+
         if not name:
             name = self.__class__.__name__.lower()
         self.name = name
 
-        logging = kwargs.get('logging', False)
         self.logging = logging
 
         self.model_config = model_config
 
         self.vars = {}
         self.placeholders = placeholders
+        self.input_dim = input_dim
 
         self.layers = []
         self.activations = []
@@ -87,13 +84,13 @@ class Model(object):
 
 
 class MLP(Model):
-    def __init__(self, model_config, placeholders, input_dim, **kwargs):
-        super(MLP, self).__init__(**kwargs)
+    def __init__(self, model_config, placeholders, input_dim, name, logging):
+        super(MLP, self).__init__(model_config, placeholders, input_dim, name, logging)
 
         self.model_config = model_config
 
         self.inputs = placeholders['features']
-        self.input_dim = input_dim
+
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
@@ -136,13 +133,12 @@ class MLP(Model):
 
 
 class GCN(Model):
-    def __init__(self, model_config, placeholders, input_dim, **kwargs):
-        super(GCN, self).__init__(**kwargs)
+    def __init__(self, model_config, placeholders, input_dim, name, logging):
+        super(GCN, self).__init__(model_config, placeholders, input_dim, name, logging)
 
         self.model_config = model_config
 
         self.inputs = placeholders['features']
-        self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
