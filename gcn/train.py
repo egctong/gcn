@@ -8,7 +8,7 @@ from gcn.utils import *
 from gcn.models import GCN, MLP
 
 
-def get_model(config):
+def get_model(config, adj):
     if config['model'] == 'gcn':
         support = [preprocess_adj(adj)]
         num_supports = 1
@@ -60,7 +60,7 @@ def main(model_config, sess, seed, verbose=False):
     features = preprocess_features(features)
 
     #
-    support, num_supports, model_func = get_model(model_config)
+    support, num_supports, model_func = get_model(model_config, adj)
 
     # define placeholders
     placeholders = {
