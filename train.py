@@ -119,21 +119,21 @@ def main(model_config, sess, seed, verbose=False):
     print("---Optimization Finished!---")
 
     # Testing
-    test_cost, test_acc, test_duration = evaluate(model, sess, features, support, y_test, test_mask, placeholders)
-    print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-          "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+    # test_cost, test_acc, test_duration = evaluate(model, sess, features, support, y_test, test_mask, placeholders)
+    # print("Test set results:", "cost=", "{:.5f}".format(test_cost),
+    #       "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
 
     #
     t_test = time.time()
     feed_dict_test = construct_feed_dict(features, support, y_test, test_mask, placeholders)
-    test_acc_all, test_o_acc_all = sess.run([model.accuracy_all, model.o_accuracy_all], feed_dict=feed_dict_test)
+    test_cost, test_acc, test_acc_all, test_o_acc_all = sess.run([model.loss, model.accuracy, model.accuracy_all, model.o_accuracy_all], feed_dict=feed_dict_test)
+    test_duration = (time.time() - t_test)
     print('test_mask: ', test_mask)
     print('test_acc_all', test_acc_all)
     print('test_o_acc_all', test_o_acc_all)
 
     print("Total time={}s".format(time.time()-very_beginning))
     return test_acc, test_acc_all, test_o_acc_all, data_split
-
 
 
 if __name__ == '__main__':
