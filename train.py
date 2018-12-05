@@ -5,7 +5,7 @@ import time
 import tensorflow as tf
 
 from gcn.utils import *
-from gcn.models import GCN, MLP
+from gcn.models import GCN
 
 
 def get_model(config, adj):
