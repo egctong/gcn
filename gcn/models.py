@@ -6,7 +6,7 @@ from gcn.metrics import *
 
 
 class Model(object):
-    def __init__(self, **kwargs):
+    def __init__(self, model_config={}, placeholders={}, **kwargs):
         allowed_kwargs = {'name', 'logging'}
         for kwarg in kwargs.keys():
             assert kwarg in allowed_kwargs, 'Invalid keyword argument: ' + kwarg
@@ -18,10 +18,10 @@ class Model(object):
         logging = kwargs.get('logging', False)
         self.logging = logging
 
-        self.model_config = None
+        self.model_config = model_config
 
         self.vars = {}
-        self.placeholders = {}
+        self.placeholders = placeholders
 
         self.layers = []
         self.activations = []
