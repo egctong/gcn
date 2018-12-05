@@ -52,7 +52,19 @@ def main(model_config, sess, seed, verbose=False):
     print(model_config)
 
     # load data
-    adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data(model_config['dataset'])
+    adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, idx_test = load_data(model_config['dataset'])
+
+    data_split = {
+        'adj': adj,
+        'features': features,
+        'y_train': y_train,
+        'y_val': y_val,
+        'y_test': y_test,
+        'train_mask': train_mask,
+        'val_mask': val_mask,
+        'test_mask': test_mask,
+        'idx_test': idx_test
+    }
 
     # Some preprocessing  # features = (coords, values, shape)
     begin = time.time()
@@ -73,20 +85,10 @@ def main(model_config, sess, seed, verbose=False):
     }
 
     # create model
-    try:
-        model = model_func(model_config, placeholders, features[2][1], logging=True)
-    except:
-        model = GCN(model_config=model_config, placeholders=placeholders, input_dim=features[2][1], logging=True)
-
-    # model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
+    model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize
     sess.run(tf.global_variables_initializer())
-
-    # initialize file writer, saver and variables in graph?
-    # train_writer = None
-    # valid_writer = None
-    # saver = None
 
     # train
     cost_val = []
@@ -124,12 +126,13 @@ def main(model_config, sess, seed, verbose=False):
     #
     t_test = time.time()
     feed_dict_test = construct_feed_dict(features, support, y_test, test_mask, placeholders)
-    test_acc_all = sess.run([model.accuracy_all], feed_dict=feed_dict_test)
+    test_acc_all, test_o_acc_all = sess.run([model.accuracy_all, model.o_accuracy_all], feed_dict=feed_dict_test)
     print('test_mask: ', test_mask)
     print('test_acc_all', test_acc_all)
+    print('test_o_acc_all', test_o_acc_all)
 
     print("Total time={}s".format(time.time()-very_beginning))
-    return test_acc
+    return test_acc, test_acc_all, test_o_acc_all, data_split
 
 
 

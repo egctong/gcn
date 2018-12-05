@@ -38,6 +38,7 @@ class GCN(object):
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.model_config['learning_rate'])
 
         self.accuracy_all = 0
+        self.o_accuracy_all = 0
         self.build()
 
     def build(self):
@@ -76,6 +77,9 @@ class GCN(object):
                                         self.placeholders['labels_mask'])
 
         self.accuracy_all = masked_accuracy_all(self.outputs, self.placeholders['labels'],
+                                                self.placeholders['labels_mask'])
+
+        self.o_accuracy_all = o_accuracy_all(self.outputs, self.placeholders['labels'],
                                                 self.placeholders['labels_mask'])
 
     def _build(self):

@@ -28,3 +28,10 @@ def masked_accuracy_all(preds, labels, mask):
     mask /= tf.reduce_mean(mask)
     accuracy_all *= mask
     return accuracy_all
+
+
+def o_accuracy_all(preds, labels):
+    """compare each prediction with each label"""
+    correct_prediction = tf.equal(tf.argmax(preds, 1), tf.argmax(labels, 1))
+    accuracy_all = tf.cast(correct_prediction, tf.float32)
+    return accuracy_all
