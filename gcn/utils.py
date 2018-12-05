@@ -203,7 +203,7 @@ def performance_per_group(nodes_per_group, test_o_acc_all, idx_test):
     for cpn_size in nodes_per_group:
         acc_per_group[cpn_size] = [test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]]
         acc_per_group[cpn_size] = np.mean(acc_per_group[cpn_size])
-        print('compoennt of size = {}, number of nodes = {} (), accuracy = {}'.format(cpn_size, nodes_per_group[cpn_size],
-                                                                                      nodes_per_group[cpn_size]/len(idx_test),
+        print('compoennt of size = {}, number of nodes = {} (), accuracy = {}'.format(cpn_size, len(nodes_per_group[cpn_size]),
+                                                                                      len(nodes_per_group[cpn_size])/len(idx_test),
                                                                                       acc_per_group[cpn_size]))
     return acc_per_group
