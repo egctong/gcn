@@ -77,9 +77,9 @@ def main(model_config, sess, seed, verbose=False):
     sess.run(tf.global_variables_initializer())
 
     # initialize file writer, saver and variables in graph?
-    train_writer = None
-    valid_writer = None
-    saver = None
+    # train_writer = None
+    # valid_writer = None
+    # saver = None
 
     # train
     cost_val = []
@@ -98,20 +98,28 @@ def main(model_config, sess, seed, verbose=False):
         cost_val.append(cost)
 
         # Print results
-        print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-              "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
-              "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
+        if verbose:
+            print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
+                  "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
+                  "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
 
         if epoch > model_config['early_stopping'] and cost_val[-1] > np.mean(cost_val[-(model_config['early_stopping'] + 1):-1]):
             print("Early stopping...")
             break
 
-    print("Optimization Finished!")
+    print("---Optimization Finished!---")
 
     # Testing
     test_cost, test_acc, test_duration = evaluate(features, support, y_test, test_mask, placeholders)
     print("Test set results:", "cost=", "{:.5f}".format(test_cost),
           "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+
+    #
+    t_test = time.time()
+    feed_dict_test = construct_feed_dict(features, support, y_test, test_mask, placeholders)
+    test_acc_all = sess.run([model.accuracy_all], feed_dict=feed_dict_test)
+    print('test_mask: ', test_mask)
+    print('test_acc_all', test_acc_all)
 
     print("Total time={}s".format(time.time()-very_beginning))
     return test_acc
