@@ -193,17 +193,39 @@ def get_node_groups(graph):
     return nodes_per_group
 
 
-def performance_per_group(nodes_per_group, test_o_acc_all, idx_test):
+def performance_per_group(nodes_per_group, test_o_acc_all, data_split):
+    """
+    :param nodes_per_group: in the entire graph, component size: all nodes in components of that size (for largest component, size =0)
+    :param test_o_acc_all: original test accuracy for all nodes in the graph (before masked)
+    :param data_split:
+    :return:
+    """
+
+    #list of only the test nodes in the graph
+    idx_test = data_split['idx_test']
+
+    # accuracy for each of the tested nodes
     test_per_node = {}
     for node in idx_test:
         test_per_node[node] = test_o_acc_all[node]
 
-    # in biggest:
+    # for each component size, what is the mean accuracy of the tested nodes
+
     acc_per_group = {}
     for cpn_size in nodes_per_group:
         acc_per_group[cpn_size] = [test_per_node[node] for node in idx_test if node in nodes_per_group[cpn_size]]
         acc_per_group[cpn_size] = np.mean(acc_per_group[cpn_size])
-        print('compoennt of size = {}, number of nodes = {} (), accuracy = {}'.format(cpn_size, len(nodes_per_group[cpn_size]),
-                                                                                      len(nodes_per_group[cpn_size])/len(idx_test),
-                                                                                      acc_per_group[cpn_size]))
+        print('components of size = {}, number of nodes = {} ({}%), accuracy = {}'.format(cpn_size,
+                                                                                        len(test_per_node[cpn_size]),
+                                                                                        len(test_per_node[cpn_size])/len(idx_test)*100,
+                                                                                        acc_per_group[cpn_size]))
+    for phase in ['train', 'val', 'test']:
+        idx = data_split['idx_' + phase]
+        print('----{}----'.format(phase))
+        for cpn_size in nodes_per_group:
+            num_in_phase = len([n for n in nodes_per_group[cpn_size] if n in idx])
+            print('size {} : {} ({}%)'.format(cpn_size, num_in_phase, num_in_phase/ len(idx))*100)
+
+
+
     return acc_per_group
