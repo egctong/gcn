@@ -231,11 +231,18 @@ def performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, data_s
 
     cpn_sizes = list(set([cname[0] for cname in nodes_per_cpn]))
 
+    print('========= BIGGEST CPN OR NOT===========')
+    acc_of_B = np.mean([test_per_node[node] for node in idx_test if node in nodes_per_group[0]])
+    print('test accuracy for BIGGEST = ', acc_of_B)
+    acc_of_nonB = np.mean([test_per_node[node] for node in idx_test if node not in nodes_per_group[0]])
+    print('test accuracy for the rest = ', acc_of_nonB)
+
+
     print('=========per SIZE===========')
 
     for phase in ['train', 'val', 'test']:
         idx = data_split['idx_' + phase]
-        print('----{}----'.format(phase))
+        print('----{} (TOT = )----'.format(phase, len(idx)))
         for cpn_size in nodes_per_group:
             num_in_phase = len([n for n in nodes_per_group[cpn_size] if n in idx])
             print('there are {} nodes coming from components of size {} ({}% of train set)'.format(num_in_phase, cpn_size, num_in_phase/ len(idx)*100))
