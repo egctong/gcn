@@ -141,7 +141,7 @@ def main(model_config, sess, seed, verbose=False):
 
     print("Total time={}s".format(time.time()-very_beginning))
 
-    acc_per_group = performance_per_group(nodes_per_group, nodes_per_cpn, test_o_acc_all, idx_test)
+    acc_per_group = performance_per_group(nodes_per_group, node_per_cpn, test_o_acc_all, idx_test)
 
     return test_acc, test_acc_all, test_o_acc_all, data_split
 
