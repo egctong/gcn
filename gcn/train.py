@@ -73,7 +73,7 @@ def main(model_config, sess, seed, verbose=False):
     }
 
     # create model
-    model = model_func(placeholders, input_dim=features[2][1], logging=True)
+    model = model_func(model_config, placeholders, input_dim=features[2][1], logging=True)
 
     # random initialize
     sess.run(tf.global_variables_initializer())
