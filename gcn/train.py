@@ -7,6 +7,7 @@ import tensorflow as tf
 from gcn.utils import *
 from gcn.models import GCN, MLP
 
+
 def get_model(config, adj):
     if config['model'] == 'gcn':
         support = [preprocess_adj(adj)]

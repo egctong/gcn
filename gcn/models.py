@@ -133,22 +133,41 @@ class MLP(Model):
 
 
 class GCN(object):
+    def __init__(self, model_config, placeholders, input_dim, **kwargs):
 
-    def __init__(self, model_config, placeholders, input_dim, logging):
+        allowed_kwargs = {'name', 'logging'}
+        for kwarg in kwargs.keys():
+            assert kwarg in allowed_kwargs, 'Invalid keyword argument: ' + kwarg
+        name = kwargs.get('name')
+        if not name:
+            name = self.__class__.__name__.lower()
+        self.name = name
 
-        self.name = 'GCN'
-        self.input_dim = input_dim
-        self.logging= logging
+        logging = kwargs.get('logging', False)
+        self.logging = logging
+        self.vars = {}
+
+        self.layers = []
+        self.activations = []
+
+        self.inputs = None
+        self.outputs = None
+
+        self.loss = 0
+        self.accuracy = 0
+        self.optimizer = None
+        self.opt_op = None
 
         self.model_config = model_config
-
         self.inputs = placeholders['features']
+        self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
         self.output_dim = placeholders['labels'].get_shape().as_list()[1]
         self.placeholders = placeholders
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.model_config['learning_rate'])
 
+        self.accuracy_all = 0
         self.build()
 
     def build(self):
@@ -186,7 +205,8 @@ class GCN(object):
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 
-        self.accuracy_all = accuracy_all(self.outputs, self.placeholders['labels'], self.placeholders['labels_mask'])
+        self.accuracy_all = masked_accuracy_all(self.outputs, self.placeholders['labels'],
+                                                self.placeholders['labels_mask'])
 
     def _build(self):
 
@@ -207,4 +227,5 @@ class GCN(object):
 
     def predict(self):
         return tf.nn.softmax(self.outputs)
+
 
